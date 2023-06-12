@@ -1,5 +1,7 @@
 syntax ="proto3";
 option go_package = "github.com/muaj07/grpc-tutorial/invoicer";
+package invoicer_service;
+
 
 message Amount{
     int64 amount = 1;
@@ -13,10 +15,24 @@ message CreateRequest {
 }
 
 message CreateResponse{
-    bytes pdf = 1;
-    bytes docx = 2;
+    string message = 1;
 }
 
+message NameList{
+    repeated string names = 1;
+}
+
+message MessageList{
+    repeated string message = 1;
+}
+
+
 service Invoicer {
-    rpc Create (CreateRequest) returns (CreateResponse){}
+    rpc Create (CreateRequest) returns (CreateResponse);
+
+    rpc CreateServerStreaming(NameList) returns (stream CreateResponse);
+
+    rpc CreateClientStreaming(stream CreateRequest) returns(MessageList);
+    
+    rpc CreateBidirectionalStreaming(stream CreateRequest) returns (stream CreateResponse);
 }

@@ -19,7 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Invoicer_Create_FullMethodName = "/Invoicer/Create"
+	Invoicer_Create_FullMethodName                       = "/invoicer_service.Invoicer/Create"
+	Invoicer_CreateServerStreaming_FullMethodName        = "/invoicer_service.Invoicer/CreateServerStreaming"
+	Invoicer_CreateClientStreaming_FullMethodName        = "/invoicer_service.Invoicer/CreateClientStreaming"
+	Invoicer_CreateBidirectionalStreaming_FullMethodName = "/invoicer_service.Invoicer/CreateBidirectionalStreaming"
 )
 
 // InvoicerClient is the client API for Invoicer service.
@@ -27,6 +30,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type InvoicerClient interface {
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
+	CreateServerStreaming(ctx context.Context, in *NameList, opts ...grpc.CallOption) (Invoicer_CreateServerStreamingClient, error)
+	CreateClientStreaming(ctx context.Context, opts ...grpc.CallOption) (Invoicer_CreateClientStreamingClient, error)
+	CreateBidirectionalStreaming(ctx context.Context, opts ...grpc.CallOption) (Invoicer_CreateBidirectionalStreamingClient, error)
 }
 
 type invoicerClient struct {
@@ -46,11 +52,111 @@ func (c *invoicerClient) Create(ctx context.Context, in *CreateRequest, opts ...
 	return out, nil
 }
 
+func (c *invoicerClient) CreateServerStreaming(ctx context.Context, in *NameList, opts ...grpc.CallOption) (Invoicer_CreateServerStreamingClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Invoicer_ServiceDesc.Streams[0], Invoicer_CreateServerStreaming_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &invoicerCreateServerStreamingClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Invoicer_CreateServerStreamingClient interface {
+	Recv() (*CreateResponse, error)
+	grpc.ClientStream
+}
+
+type invoicerCreateServerStreamingClient struct {
+	grpc.ClientStream
+}
+
+func (x *invoicerCreateServerStreamingClient) Recv() (*CreateResponse, error) {
+	m := new(CreateResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *invoicerClient) CreateClientStreaming(ctx context.Context, opts ...grpc.CallOption) (Invoicer_CreateClientStreamingClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Invoicer_ServiceDesc.Streams[1], Invoicer_CreateClientStreaming_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &invoicerCreateClientStreamingClient{stream}
+	return x, nil
+}
+
+type Invoicer_CreateClientStreamingClient interface {
+	Send(*CreateRequest) error
+	CloseAndRecv() (*MessageList, error)
+	grpc.ClientStream
+}
+
+type invoicerCreateClientStreamingClient struct {
+	grpc.ClientStream
+}
+
+func (x *invoicerCreateClientStreamingClient) Send(m *CreateRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *invoicerCreateClientStreamingClient) CloseAndRecv() (*MessageList, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(MessageList)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *invoicerClient) CreateBidirectionalStreaming(ctx context.Context, opts ...grpc.CallOption) (Invoicer_CreateBidirectionalStreamingClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Invoicer_ServiceDesc.Streams[2], Invoicer_CreateBidirectionalStreaming_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &invoicerCreateBidirectionalStreamingClient{stream}
+	return x, nil
+}
+
+type Invoicer_CreateBidirectionalStreamingClient interface {
+	Send(*CreateRequest) error
+	Recv() (*CreateResponse, error)
+	grpc.ClientStream
+}
+
+type invoicerCreateBidirectionalStreamingClient struct {
+	grpc.ClientStream
+}
+
+func (x *invoicerCreateBidirectionalStreamingClient) Send(m *CreateRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *invoicerCreateBidirectionalStreamingClient) Recv() (*CreateResponse, error) {
+	m := new(CreateResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // InvoicerServer is the server API for Invoicer service.
 // All implementations must embed UnimplementedInvoicerServer
 // for forward compatibility
 type InvoicerServer interface {
 	Create(context.Context, *CreateRequest) (*CreateResponse, error)
+	CreateServerStreaming(*NameList, Invoicer_CreateServerStreamingServer) error
+	CreateClientStreaming(Invoicer_CreateClientStreamingServer) error
+	CreateBidirectionalStreaming(Invoicer_CreateBidirectionalStreamingServer) error
 	mustEmbedUnimplementedInvoicerServer()
 }
 
@@ -60,6 +166,15 @@ type UnimplementedInvoicerServer struct {
 
 func (UnimplementedInvoicerServer) Create(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedInvoicerServer) CreateServerStreaming(*NameList, Invoicer_CreateServerStreamingServer) error {
+	return status.Errorf(codes.Unimplemented, "method CreateServerStreaming not implemented")
+}
+func (UnimplementedInvoicerServer) CreateClientStreaming(Invoicer_CreateClientStreamingServer) error {
+	return status.Errorf(codes.Unimplemented, "method CreateClientStreaming not implemented")
+}
+func (UnimplementedInvoicerServer) CreateBidirectionalStreaming(Invoicer_CreateBidirectionalStreamingServer) error {
+	return status.Errorf(codes.Unimplemented, "method CreateBidirectionalStreaming not implemented")
 }
 func (UnimplementedInvoicerServer) mustEmbedUnimplementedInvoicerServer() {}
 
@@ -92,11 +207,84 @@ func _Invoicer_Create_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Invoicer_CreateServerStreaming_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(NameList)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(InvoicerServer).CreateServerStreaming(m, &invoicerCreateServerStreamingServer{stream})
+}
+
+type Invoicer_CreateServerStreamingServer interface {
+	Send(*CreateResponse) error
+	grpc.ServerStream
+}
+
+type invoicerCreateServerStreamingServer struct {
+	grpc.ServerStream
+}
+
+func (x *invoicerCreateServerStreamingServer) Send(m *CreateResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _Invoicer_CreateClientStreaming_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(InvoicerServer).CreateClientStreaming(&invoicerCreateClientStreamingServer{stream})
+}
+
+type Invoicer_CreateClientStreamingServer interface {
+	SendAndClose(*MessageList) error
+	Recv() (*CreateRequest, error)
+	grpc.ServerStream
+}
+
+type invoicerCreateClientStreamingServer struct {
+	grpc.ServerStream
+}
+
+func (x *invoicerCreateClientStreamingServer) SendAndClose(m *MessageList) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *invoicerCreateClientStreamingServer) Recv() (*CreateRequest, error) {
+	m := new(CreateRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _Invoicer_CreateBidirectionalStreaming_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(InvoicerServer).CreateBidirectionalStreaming(&invoicerCreateBidirectionalStreamingServer{stream})
+}
+
+type Invoicer_CreateBidirectionalStreamingServer interface {
+	Send(*CreateResponse) error
+	Recv() (*CreateRequest, error)
+	grpc.ServerStream
+}
+
+type invoicerCreateBidirectionalStreamingServer struct {
+	grpc.ServerStream
+}
+
+func (x *invoicerCreateBidirectionalStreamingServer) Send(m *CreateResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *invoicerCreateBidirectionalStreamingServer) Recv() (*CreateRequest, error) {
+	m := new(CreateRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // Invoicer_ServiceDesc is the grpc.ServiceDesc for Invoicer service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Invoicer_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Invoicer",
+	ServiceName: "invoicer_service.Invoicer",
 	HandlerType: (*InvoicerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -104,6 +292,23 @@ var Invoicer_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Invoicer_Create_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "CreateServerStreaming",
+			Handler:       _Invoicer_CreateServerStreaming_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "CreateClientStreaming",
+			Handler:       _Invoicer_CreateClientStreaming_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "CreateBidirectionalStreaming",
+			Handler:       _Invoicer_CreateBidirectionalStreaming_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "invoicer.proto",
 }
